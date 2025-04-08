@@ -1,0 +1,83 @@
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Prueba Almacenamiento</title>
+        <script>
+            // Función para generar un valor aleatorio con base en "s4dum4"
+            function generarValorAleatorio() {
+                const base = 's4dum4';
+                let aleatorio = '';
+                for (let i = 0; i < 5; i++) {
+                    aleatorio += base.charAt(Math.floor(Math.random() * base.length));
+                }
+                return aleatorio;
+            }
+
+            // Guardar en Cookie
+            function guardarCookie() {
+                const valorCookie = generarValorAleatorio();
+                document.cookie = `s4dum4Cookie=${valorCookie}; expires=Fri, 31 Dec 2025 23:59:59 GMT; path=/`;
+                console.log('Cookie guardada:', valorCookie);
+            }
+
+            // Guardar en SessionStorage
+            function guardarSessionStorage() {
+                const valorSession = generarValorAleatorio();
+                sessionStorage.setItem('s4dum4Session', valorSession);
+                console.log('SessionStorage guardado:', valorSession);
+            }
+
+            // Guardar en LocalStorage
+            function guardarLocalStorage() {
+                const valorLocal = generarValorAleatorio();
+                localStorage.setItem('s4dum4Local', valorLocal);
+                console.log('LocalStorage guardado:', valorLocal);
+            }
+
+            // Guardar en IndexedDB
+            function guardarIndexedDB() {
+                const valorIndexedDB = generarValorAleatorio();
+                const request = indexedDB.open('s4dum4DB', 1);
+
+                request.onupgradeneeded = function(event) {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains('s4dum4Store')) {
+                        db.createObjectStore('s4dum4Store', { keyPath: 'id' });
+                    }
+                };
+
+                request.onsuccess = function(event) {
+                    const db = event.target.result;
+                    const transaction = db.transaction('s4dum4Store', 'readwrite');
+                    const store = transaction.objectStore('s4dum4Store');
+                    const data = { id: Date.now(), valor: valorIndexedDB };
+                    store.add(data);
+                    console.log('IndexedDB guardado:', valorIndexedDB);
+                };
+
+                request.onerror = function(event) {
+                    console.error('Error en IndexedDB:', event.target.error);
+                };
+            }
+
+            // Ejecutar todas las funciones de almacenamiento
+            function guardarDatos() {
+                guardarCookie();
+                guardarSessionStorage();
+                guardarLocalStorage();
+                guardarIndexedDB();
+            }
+
+            // Ejecutar la función de guardar datos automáticamente al cargar la página
+            window.onload = function() {
+                guardarDatos();
+            };
+        </script>
+    </head>
+    <body>
+        <h1>Guardando Datos en Diferentes Almacenamientos</h1>
+        <p>Los datos se guardarán automáticamente cuando cargues esta página.</p>
+    </body>
+    </html>
